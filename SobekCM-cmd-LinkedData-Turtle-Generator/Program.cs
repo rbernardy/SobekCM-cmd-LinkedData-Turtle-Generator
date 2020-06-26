@@ -8,7 +8,7 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
 {
     class Program
     {
-        public static string myversion = "20200626-1304";
+        public static string myversion = "20200626-1310";
 
         public static void Main(string[] args)
         {
