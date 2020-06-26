@@ -8,7 +8,7 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
 {
     class Program
     {
-        public static string myversion = "20200624-1115";
+        public static string myversion = "20200626-1304";
 
         public static void Main(string[] args)
         {
@@ -19,8 +19,9 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
             }
 
             string aggcode = null, accessMode=null;
+            int limit = 99999;
 
-            Console.WriteLine("SCLTG: version=[" + myversion + "].");
+            Console.WriteLine("\r\nSCLTG: version=[" + myversion + "].\r\n");
 
             foreach (string myarg in args)
             {
@@ -33,6 +34,11 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
                 {
                     accessMode = myarg.Substring(7);
                 }
+
+                if (myarg.StartsWith("--limit"))
+                {
+                    limit = int.Parse(myarg.Substring(8));
+                }
             }
 
             if (aggcode==null || accessMode==null)
@@ -41,13 +47,14 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
                 return;
             }
 
-            GenerateRDFsFromAnAggregation(aggcode, accessMode);
+            GenerateRDFsFromAnAggregation(aggcode, accessMode, limit);
 
-            Console.WriteLine("Done @ " + DateTime.Now.ToLocalTime());
+            Console.WriteLine("________________________________________________________________________________________");
 
+            Console.WriteLine("\r\nDone @ " + DateTime.Now.ToLocalTime() + "\r\n");
         }
 
-        private static void GenerateRDFsFromAnAggregation(string aggcode, string accessMode)
+        private static void GenerateRDFsFromAnAggregation(string aggcode, string accessMode, int limit)
         {
             string url = "http://solr.dss-test.org:8983/solr/documents_live/select?fl=did&q=aggregations:" + aggcode + "&rows=99999&sort=did%20asc&wt=xml";
 
@@ -59,16 +66,26 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
             XmlNodeList nodes;
             XmlNode node2, node3;
             Boolean mytry = false;
+            int idx = 0;
 
             doc.LoadXml(data);
 
             nodes = doc.SelectNodes("//str[@name='did']");
 
-            Console.WriteLine("There are [" + nodes.Count + "] records for [" + aggcode + "].");
+            Console.WriteLine("\r\nThere are [" + nodes.Count + "] records for [" + aggcode + "].\r\n");
 
             foreach (XmlNode node in nodes)
             {
-                Console.WriteLine(node.InnerText);
+                idx++;
+
+                if (idx > limit)
+                {
+                    Console.WriteLine("limit [" + limit + "] reached.\r\n");
+                    return;
+                }
+
+                Console.WriteLine("____________________________________________________________________________________");
+                Console.WriteLine(idx + "/" + nodes.Count + ": " + node.InnerText);
                 packageid = node.InnerText.Replace(":", "_");
 
                 if (accessMode == "url")
@@ -95,14 +112,12 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
                 }
 
                 Console.WriteLine("\r\n");
-
-                return;
             }
         }
 
         private static Boolean GenerateRDFfromMETS(string packageid, string path_mets, string accessMode)
         {
-            Console.WriteLine("GRFM: packageid=[" + packageid + "], mets=[" + path_mets + "] accessMode=[" + accessMode + "].");
+            Console.WriteLine("\r\nGRFM: packageid=[" + packageid + "], mets=[" + path_mets + "] accessMode=[" + accessMode + "].\r\n");
 
             StringBuilder sb = new StringBuilder();
             string data=null,output=null, handle=null, subject=null, loi=null, path_rdf, dir;
@@ -254,7 +269,7 @@ namespace SobekCM_cmd_LinkedData_Turtle_Generator
             else
             {
                 FileInfo fi = new FileInfo(path_rdf);
-                Console.WriteLine("File exist and is " + fi.Length + " bytes. [" + path_rdf + "].");
+                Console.WriteLine("File exist and is " + fi.Length + " bytes. [" + path_rdf + "].\r\n");
                 Console.WriteLine(sb.ToString());
                 return true;
             }
